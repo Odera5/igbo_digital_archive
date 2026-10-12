@@ -147,6 +147,39 @@ app.innerHTML = `
         knowledge easier to discover and learn.
       </p>
     </section>
+    <section id="cultural-images" class="section">
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">WIKIMEDIA COMMONS API</p>
+      <h2>Explore Cultural Images</h2>
+    </div>
+    <p class="section-intro">
+      Discover photographs and visual resources related to Igbo
+      culture, traditions, and heritage.
+    </p>
+  </div>
+
+  <form id="commons-search-form" class="search-form">
+    <input
+      id="commons-search-input"
+      type="search"
+      placeholder="Search Igbo culture, masquerades..."
+      aria-label="Search cultural images"
+    />
+    <button type="submit">Search Images</button>
+  </form>
+
+  <p id="commons-status" role="status" aria-live="polite">
+    Loading cultural images...
+  </p>
+
+  <div id="commons-results" class="commons-grid"></div>
+
+  <p class="demo-note">
+    Images are provided by Wikimedia Commons. Visit each source page
+    to check its license and attribution requirements.
+  </p>
+</section>
 
     <section id="about" class="about-section">
       <p class="eyebrow">ABOUT THE PROJECT</p>
@@ -245,3 +278,111 @@ document.querySelectorAll("[data-category]").forEach((link) => {
 document.querySelector("#year").textContent = new Date().getFullYear();
 
 displayRecords(records);
+// Wikimedia Commons API: search cultural images
+const commonsForm = document.querySelector("#commons-search-form");
+const commonsInput = document.querySelector("#commons-search-input");
+const commonsResults = document.querySelector("#commons-results");
+const commonsStatus = document.querySelector("#commons-status");
+
+async function searchCulturalImages(searchTerm) {
+  commonsResults.replaceChildren();
+  commonsStatus.textContent = "Searching Wikimedia Commons...";
+
+  const params = new URLSearchParams({
+    action: "query",
+    generator: "search",
+    gsrsearch: searchTerm,
+    gsrnamespace: "6",
+    gsrlimit: "12",
+    prop: "imageinfo",
+    iiprop: "url|extmetadata",
+    iiurlwidth: "400",
+    format: "json",
+    origin: "*",
+  });
+
+  try {
+    const response = await fetch(
+      `https://commons.wikimedia.org/w/api.php?${params}`
+    );
+
+    if (!response.ok) {
+      throw new Error("The image search request failed.");
+    }
+
+    const data = await response.json();
+    const pages = Object.values(data.query?.pages ?? {});
+
+    const images = pages.filter(
+      (page) => page.imageinfo?.[0]?.thumburl
+    );
+
+    if (images.length === 0) {
+      commonsStatus.textContent =
+        "No images found. Try another search term.";
+      return;
+    }
+
+    images.forEach((page) => {
+      const imageInfo = page.imageinfo[0];
+      const title = page.title
+        .replace(/^File:/, "")
+        .replaceAll("_", " ");
+
+      const sourceUrl =
+        `https://commons.wikimedia.org/wiki/` +
+        encodeURIComponent(page.title.replaceAll(" ", "_"));
+
+      const card = document.createElement("article");
+      card.className = "commons-card";
+
+      const image = document.createElement("img");
+      image.src = imageInfo.thumburl;
+      image.alt = title;
+      image.loading = "lazy";
+
+      const heading = document.createElement("h3");
+      heading.textContent = title;
+
+      const license = document.createElement("p");
+      license.className = "commons-license";
+
+      const licenseName =
+        imageInfo.extmetadata?.LicenseShortName?.value;
+
+      license.textContent = licenseName
+        ? `License: ${licenseName.replace(/<[^>]*>/g, "")}`
+        : "Check the source page for licensing information.";
+
+      const sourceLink = document.createElement("a");
+      sourceLink.href = sourceUrl;
+      sourceLink.target = "_blank";
+      sourceLink.rel = "noopener noreferrer";
+      sourceLink.textContent = "View source and license";
+
+      card.append(image, heading, license, sourceLink);
+      commonsResults.append(card);
+    });
+
+    commonsStatus.textContent =
+      `Found ${images.length} cultural image results.`;
+  } catch (error) {
+    console.error("Wikimedia Commons API error:", error);
+
+    commonsStatus.textContent =
+      "Unable to load images. Please check your connection and try again.";
+  }
+}
+
+commonsForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  const searchTerm = commonsInput.value.trim();
+
+  if (searchTerm) {
+    searchCulturalImages(searchTerm);
+  }
+});
+
+// Display an initial set of images when the page loads.
+searchCulturalImages("Igbo culture");

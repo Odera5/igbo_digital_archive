@@ -934,3 +934,127 @@ input {
   background: #f3f0e8;
   border-radius: 4px;
 }
+/* Wikimedia Commons cultural image results */
+
+.commons-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  margin-top: 24px;
+}
+
+.commons-card {
+  min-width: 0;
+  padding: 16px;
+  background: #fffefa;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow-wrap: anywhere;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.commons-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 22px #24332b12;
+}
+
+.commons-card img {
+  display: block;
+  width: 100%;
+  height: 210px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #edf1e8;
+}
+
+.commons-card h3 {
+  color: var(--green-dark);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.commons-license {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.commons-card a {
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+#commons-status {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+@media (max-width: 700px) {
+  .commons-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .commons-card img {
+    height: 170px;
+  }
+}
+
+@media (max-width: 480px) {
+  .commons-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .commons-card img {
+    height: 230px;
+  }
+}
+/* Wikimedia Commons cultural image search */
+.commons-section {
+  padding: 3rem 5%;
+  background: var(--section-background, #f7f9f8);
+}
+
+.commons-results {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.commons-card {
+  min-width: 0;
+  padding: 1rem;
+  overflow: hidden;
+  background: white;
+  border: 1px solid #e2e8e5;
+  border-radius: 12px;
+}
+
+.commons-card img {
+  display: block;
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.commons-card p {
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}
+
+.commons-card a {
+  color: #087f8c;
+}
+
+.commons-card a:focus-visible,
+.commons-card a:hover {
+  text-decoration: underline;
+}
+
+#commons-search-status {
+  margin-top: 1rem;
+}

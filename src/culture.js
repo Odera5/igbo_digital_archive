@@ -1,3 +1,4 @@
+
 import "./style.css";
 
 const topics = [
@@ -103,6 +104,39 @@ app.innerHTML = `
 
       <div id="culture-grid" class="records-grid"></div>
 
+      <section class="commons-section">
+        <div class="section-heading">
+          <p class="eyebrow">CULTURAL IMAGE COLLECTION</p>
+          <h2>Discover Igbo Culture in Pictures</h2>
+          <p>
+            Search Wikimedia Commons for photographs and visual materials
+            related to Igbo traditions, history, arts, and communities.
+          </p>
+        </div>
+
+        <form id="commons-search-form" class="book-search-form">
+          <label for="commons-search-input">Search cultural images</label>
+
+          <div class="book-search-controls">
+            <input
+              id="commons-search-input"
+              type="search"
+              placeholder="e.g. Igbo New Yam Festival"
+              value="Igbo culture"
+              required
+            />
+
+            <button type="submit" class="detail-button">
+              Search Images
+            </button>
+          </div>
+        </form>
+
+        <p id="commons-search-status" role="status" aria-live="polite"></p>
+
+        <div id="commons-results" class="commons-results"></div>
+      </section>
+
       <section class="culture-note">
         <h2>Help preserve our heritage</h2>
         <p>
@@ -158,14 +192,12 @@ app.innerHTML = `
   </footer>
 `;
 
-// Culture topic elements
+// Display culture topic cards
 const cultureGrid = document.querySelector("#culture-grid");
 const topicCount = document.querySelector("#topic-count");
 
-// Display the number of culture topics
 topicCount.textContent = `${topics.length} topics`;
 
-// Display culture topic cards
 topics.forEach((topic) => {
   const article = document.createElement("article");
 
@@ -198,7 +230,6 @@ topics.forEach((topic) => {
 
     article.setAttribute("aria-expanded", String(!isExpanded));
     details.hidden = isExpanded;
-
     linkText.textContent = isExpanded ? "Read more +" : "Show less −";
   }
 
@@ -214,6 +245,119 @@ topics.forEach((topic) => {
   article.append(category, title, description, details, linkText);
   cultureGrid.append(article);
 });
+
+// Wikimedia Commons image search elements
+const commonsSearchForm = document.querySelector("#commons-search-form");
+const commonsSearchInput = document.querySelector("#commons-search-input");
+const commonsResults = document.querySelector("#commons-results");
+const commonsSearchStatus = document.querySelector("#commons-search-status");
+
+async function searchCommons(searchTerm) {
+  commonsResults.replaceChildren();
+  commonsSearchStatus.textContent = "Searching Wikimedia Commons...";
+
+  try {
+    const params = new URLSearchParams({
+      action: "query",
+      generator: "search",
+      gsrsearch: searchTerm,
+      gsrnamespace: "6",
+      gsrlimit: "8",
+      prop: "imageinfo",
+      iiprop: "url",
+      iiurlwidth: "400",
+      format: "json",
+      origin: "*",
+    });
+
+    const url = `https://commons.wikimedia.org/w/api.php?${params}`;
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(`Request failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const pages = Object.values(data.query?.pages || {});
+
+    if (pages.length === 0) {
+      commonsSearchStatus.textContent =
+        "No images found. Try a different search term.";
+      return;
+    }
+
+    let displayedCount = 0;
+
+    pages.forEach((page) => {
+      const imageInfo = page.imageinfo?.[0];
+
+      if (!imageInfo) return;
+
+      const article = document.createElement("article");
+      article.className = "commons-card";
+
+      const commonsUrl =
+        `https://commons.wikimedia.org/wiki/${encodeURIComponent(
+          page.title.replaceAll(" ", "_"),
+        )}`;
+
+      const imageLink = document.createElement("a");
+      imageLink.href = commonsUrl;
+      imageLink.target = "_blank";
+      imageLink.rel = "noopener noreferrer";
+      imageLink.setAttribute(
+        "aria-label",
+        `View ${page.title} on Wikimedia Commons`,
+      );
+
+      const image = document.createElement("img");
+      image.src = imageInfo.thumburl || imageInfo.url;
+      image.alt = page.title.replace(/^File:/, "");
+      image.loading = "lazy";
+
+      imageLink.append(image);
+
+      const title = document.createElement("p");
+      title.textContent = page.title.replace(/^File:/, "");
+
+      const sourceLink = document.createElement("a");
+      sourceLink.href = commonsUrl;
+      sourceLink.target = "_blank";
+      sourceLink.rel = "noopener noreferrer";
+      sourceLink.textContent = "View source and licence";
+
+      article.append(imageLink, title, sourceLink);
+      commonsResults.append(article);
+
+      displayedCount++;
+    });
+
+    commonsSearchStatus.textContent = displayedCount
+      ? `Showing ${displayedCount} image results. Open each source page to check its licence and attribution requirements.`
+      : "No displayable images found. Try another search term.";
+  } catch (error) {
+    console.error("Wikimedia Commons API error:", error);
+
+    commonsSearchStatus.textContent =
+      "Images could not be loaded. Check your internet connection and try again.";
+  }
+}
+
+commonsSearchForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  const searchTerm = commonsSearchInput.value.trim();
+
+  if (!searchTerm) {
+    commonsSearchStatus.textContent = "Please enter a search term.";
+    return;
+  }
+
+  await searchCommons(searchTerm);
+});
+
+// Load an initial collection of images when the page opens
+searchCommons(commonsSearchInput.value);
 
 // Open Library book search elements
 const bookSearchForm = document.querySelector("#book-search-form");
@@ -266,7 +410,6 @@ bookSearchForm.addEventListener("submit", async (event) => {
       const article = document.createElement("article");
       article.className = "book-card";
 
-      // Display the book cover when available
       if (book.cover_i) {
         const cover = document.createElement("img");
 
@@ -280,27 +423,20 @@ bookSearchForm.addEventListener("submit", async (event) => {
         article.append(cover);
       }
 
-      // Book title
       const title = document.createElement("h3");
       title.textContent = book.title || "Untitled book";
 
-      // Book author
       const authors = document.createElement("p");
-
       authors.textContent = book.author_name
         ? `Author: ${book.author_name.join(", ")}`
         : "Author information unavailable";
 
-      // First publication year
       const year = document.createElement("p");
-
       year.textContent = book.first_publish_year
         ? `First published: ${book.first_publish_year}`
         : "Publication year unavailable";
 
-      // Link to the book's Open Library page
       const link = document.createElement("a");
-
       link.href = `https://openlibrary.org${book.key}`;
       link.target = "_blank";
       link.rel = "noopener noreferrer";
