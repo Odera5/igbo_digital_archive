@@ -1,5 +1,5 @@
+
 import "../styles/style.css";
-import recordData from "../data/record.json";
 
 const app = document.querySelector("#app");
 
@@ -42,6 +42,7 @@ app.innerHTML = `
 
       <div class="filter-area">
         <h2>Browse by category</h2>
+
         <div class="filter-buttons" aria-label="Filter records">
           <button
             class="filter-button selected"
@@ -133,6 +134,7 @@ function displayRecords() {
 
   filteredRecords.forEach((record) => {
     const article = document.createElement("article");
+
     article.className = "record-card";
     article.tabIndex = 0;
     article.setAttribute("role", "link");
@@ -173,7 +175,14 @@ function displayRecords() {
     linkText.className = "card-link";
     linkText.textContent = "View details →";
 
-    article.append(category, title, meaning, description, linkText);
+    article.append(
+      category,
+      title,
+      meaning,
+      description,
+      linkText
+    );
+
     recordsGrid.append(article);
   });
 
@@ -185,7 +194,9 @@ function displayRecords() {
         : selectedCategory;
 
   resultsCount.textContent =
-    `${filteredRecords.length} record${filteredRecords.length === 1 ? "" : "s"}`;
+    `${filteredRecords.length} record${
+      filteredRecords.length === 1 ? "" : "s"
+    }`;
 
   emptyMessage.hidden = filteredRecords.length > 0;
 
@@ -197,46 +208,68 @@ function displayRecords() {
   }
 }
 
-function loadRecords() {
-  if (!Array.isArray(recordData)) {
-    console.error(
-      "Invalid archive data: record.json must contain a JSON array."
-    );
+async function loadRecords() {
+  try {
+    resultsCount.textContent = "Loading records...";
+
+    const response = await fetch("/data/record.json");
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to load record.json: HTTP ${response.status}`
+      );
+    }
+
+    const recordData = await response.json();
+
+    if (!Array.isArray(recordData)) {
+      throw new Error(
+        "Invalid archive data: record.json must contain a JSON array."
+      );
+    }
+
+    const validRecords = recordData.filter((record) => {
+      return (
+        record &&
+        typeof record.id === "string" &&
+        typeof record.igbo === "string" &&
+        typeof record.category === "string" &&
+        typeof record.meaning === "string"
+      );
+    });
+
+    if (validRecords.length !== recordData.length) {
+      console.warn(
+        "Some records were skipped because they are missing required fields."
+      );
+    }
+
+    records = validRecords;
+
+    displayRecords();
+  } catch (error) {
+    console.error("Error loading archive records:", error);
+
     resultsCount.textContent = "Unable to load records.";
+
     emptyMessage.textContent =
-      "The records file must contain a JSON array. Please check record.json.";
+      "Could not load archive records. Check that public/data/record.json exists and contains valid JSON.";
+
     emptyMessage.hidden = false;
-    return;
   }
-
-  const validRecords = recordData.filter((record) => {
-    return (
-      record &&
-      typeof record.id === "string" &&
-      typeof record.igbo === "string" &&
-      typeof record.category === "string" &&
-      typeof record.meaning === "string"
-    );
-  });
-
-  if (validRecords.length !== recordData.length) {
-    console.warn(
-      "Some records were skipped because they are missing required fields."
-    );
-  }
-
-  records = validRecords;
-  displayRecords();
 }
 
 searchForm.addEventListener("submit", (event) => {
   event.preventDefault();
+
   searchTerm = searchInput.value.trim().toLowerCase();
+
   displayRecords();
 });
 
 searchInput.addEventListener("input", () => {
   searchTerm = searchInput.value.trim().toLowerCase();
+
   displayRecords();
 });
 
