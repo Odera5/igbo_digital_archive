@@ -1,5 +1,5 @@
 
-import "./style.css";
+import "../styles/style.css";
 
 const FAVORITES_KEY = "igboArchiveFavorites";
 const app = document.querySelector("#app");

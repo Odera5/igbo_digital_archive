@@ -1,0 +1,65 @@
+[
+  {
+    "id": "ndewo",
+    "igbo": "Ndewo",
+    "category": "Language",
+    "meaning": "Hello or greetings",
+    "description": "A common greeting used to acknowledge someone."
+  },
+  {
+    "id": "udo",
+    "igbo": "Udo",
+    "category": "Language",
+    "meaning": "Peace",
+    "description": "A word associated with peace and harmony."
+  },
+  {
+    "id": "imela",
+    "igbo": "Imela",
+    "category": "Language",
+    "meaning": "Thank you",
+    "description": "An expression of gratitude."
+  },
+  {
+    "id": "biko",
+    "igbo": "Biko",
+    "category": "Language",
+    "meaning": "Please",
+    "description": "A polite expression used when making a request."
+  },
+  {
+    "id": "onye-kwe",
+    "igbo": "Onye kwe, chi ya ekwe",
+    "category": "Proverbs",
+    "meaning": "When a person agrees, their personal spirit agrees.",
+    "description": "A proverb emphasizing personal effort and determination."
+  },
+  {
+    "id": "aha",
+    "igbo": "Aha",
+    "category": "Language",
+    "meaning": "Name",
+    "description": "The Igbo word for a name."
+  },
+  {
+    "id": "nwoke",
+    "igbo": "Nwoke",
+    "category": "Language",
+    "meaning": "Man",
+    "description": "A word commonly used for an adult male."
+  },
+  {
+    "id": "nwanyi",
+    "igbo": "Nwanyị",
+    "category": "Language",
+    "meaning": "Woman",
+    "description": "A word commonly used for an adult female."
+  },
+  {
+    "id": "aka-nri",
+    "igbo": "Aka nri",
+    "category": "Language",
+    "meaning": "Right hand",
+    "description": "A phrase referring to the right hand."
+  }
+]

@@ -1,72 +1,5 @@
-
-import "./style.css";
-
-const records = [
-  {
-    id: "ndewo",
-    igbo: "Ndewo",
-    category: "Language",
-    meaning: "Hello or greetings",
-    description: "A common greeting used to acknowledge someone.",
-  },
-  {
-    id: "udo",
-    igbo: "Udo",
-    category: "Language",
-    meaning: "Peace",
-    description: "A word associated with peace and harmony.",
-  },
-  {
-    id: "imela",
-    igbo: "Imela",
-    category: "Language",
-    meaning: "Thank you",
-    description: "An expression of gratitude.",
-  },
-  {
-    id: "biko",
-    igbo: "Biko",
-    category: "Language",
-    meaning: "Please",
-    description: "A polite expression used when making a request.",
-  },
-  {
-    id: "onye-kwe",
-    igbo: "Onye kwe, chi ya ekwe",
-    category: "Proverbs",
-    meaning: "When a person agrees, their personal spirit agrees.",
-    description:
-      "A proverb commonly understood to emphasize personal effort and determination.",
-  },
-  {
-    id: "aha",
-    igbo: "Aha",
-    category: "Language",
-    meaning: "Name",
-    description: "The Igbo word for a name.",
-  },
-  {
-    id: "nwoke",
-    igbo: "Nwoke",
-    category: "Language",
-    meaning: "Man",
-    description: "A word commonly used for an adult male.",
-  },
-  {
-    id: "nwanyi",
-    igbo: "Nwanyị",
-    category: "Language",
-    meaning: "Woman",
-    description: "A word commonly used for an adult female.",
-  },
-  {
-    id: "aka-nri",
-    igbo: "Aka nri",
-    category: "Language",
-    meaning: "Right hand",
-    description: "A phrase referring to the right hand.",
-  },
-];
+import "../styles/style.css";
+import recordData from "../data/record.json";
 
 const app = document.querySelector("#app");
 
@@ -138,7 +71,7 @@ app.innerHTML = `
 
       <div class="results-heading">
         <h2 id="results-title">All records</h2>
-        <p id="results-count"></p>
+        <p id="results-count">Loading records...</p>
       </div>
 
       <div id="records-grid" class="records-grid"></div>
@@ -171,6 +104,7 @@ const resultsCount = document.querySelector("#results-count");
 const emptyMessage = document.querySelector("#empty-message");
 const filterButtons = document.querySelectorAll(".filter-button");
 
+let records = [];
 let selectedCategory = "All";
 let searchTerm = "";
 
@@ -186,6 +120,7 @@ function displayRecords() {
       record.meaning,
       record.description,
     ]
+      .filter(Boolean)
       .join(" ")
       .toLowerCase();
 
@@ -206,32 +141,33 @@ function displayRecords() {
       `View details for ${record.igbo}`
     );
 
-    article.addEventListener("click", () => {
+    function openRecord() {
       window.location.href =
         `record.html?id=${encodeURIComponent(record.id)}`;
-    });
+    }
+
+    article.addEventListener("click", openRecord);
 
     article.addEventListener("keydown", (event) => {
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
-        window.location.href =
-          `record.html?id=${encodeURIComponent(record.id)}`;
+        openRecord();
       }
     });
 
     const category = document.createElement("p");
     category.className = "record-category";
-    category.textContent = record.category;
+    category.textContent = record.category || "Uncategorized";
 
     const title = document.createElement("h3");
     title.textContent = record.igbo;
 
     const meaning = document.createElement("p");
     meaning.className = "record-meaning";
-    meaning.textContent = record.meaning;
+    meaning.textContent = record.meaning || "";
 
     const description = document.createElement("p");
-    description.textContent = record.description;
+    description.textContent = record.description || "";
 
     const linkText = document.createElement("span");
     linkText.className = "card-link";
@@ -252,6 +188,45 @@ function displayRecords() {
     `${filteredRecords.length} record${filteredRecords.length === 1 ? "" : "s"}`;
 
   emptyMessage.hidden = filteredRecords.length > 0;
+
+  if (filteredRecords.length === 0) {
+    emptyMessage.textContent =
+      records.length === 0
+        ? "No archive records are available. Please check record.json."
+        : "No records match your search. Try another word or category.";
+  }
+}
+
+function loadRecords() {
+  if (!Array.isArray(recordData)) {
+    console.error(
+      "Invalid archive data: record.json must contain a JSON array."
+    );
+    resultsCount.textContent = "Unable to load records.";
+    emptyMessage.textContent =
+      "The records file must contain a JSON array. Please check record.json.";
+    emptyMessage.hidden = false;
+    return;
+  }
+
+  const validRecords = recordData.filter((record) => {
+    return (
+      record &&
+      typeof record.id === "string" &&
+      typeof record.igbo === "string" &&
+      typeof record.category === "string" &&
+      typeof record.meaning === "string"
+    );
+  });
+
+  if (validRecords.length !== recordData.length) {
+    console.warn(
+      "Some records were skipped because they are missing required fields."
+    );
+  }
+
+  records = validRecords;
+  displayRecords();
 }
 
 searchForm.addEventListener("submit", (event) => {
@@ -280,4 +255,4 @@ filterButtons.forEach((button) => {
   });
 });
 
-displayRecords();
+loadRecords();

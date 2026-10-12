@@ -16,7 +16,7 @@
   --muted: #69746c;
   --border: #e7e3d9;
 }
-
+/* reset */
 * {
   box-sizing: border-box;
 }
